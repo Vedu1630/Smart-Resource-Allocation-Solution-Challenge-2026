@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 const navItems = [
@@ -30,19 +31,57 @@ const navItems = [
 
 export default function Layout() {
     const location = useLocation();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [collapsedSections, setCollapsedSections] = useState({});
+
+    const toggleSection = (sectionName) => {
+        setCollapsedSections(prev => ({ ...prev, [sectionName]: !prev[sectionName] }));
+    };
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location]);
 
     return (
         <div className="app-layout">
-            <aside className="app-sidebar">
-                <div className="sidebar-logo">
-                    <h1>ImpactMatch</h1>
-                    <span>Volunteer Coordination OS</span>
+            {isMobileMenuOpen && (
+                <div 
+                    className="mobile-menu-overlay" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+            <aside className={`app-sidebar ${isMobileMenuOpen ? 'open' : ''} ${isSidebarCollapsed ? 'desktop-collapsed' : ''}`}>
+                <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <button 
+                        className="desktop-toggle-btn" 
+                        onClick={() => setIsSidebarCollapsed(true)}
+                        aria-label="Hide Sidebar"
+                        style={{ opacity: 0.7 }}
+                    >
+                        ☰
+                    </button>
+                    <div>
+                        <h1 style={{ margin: 0, lineHeight: 1.2 }}>ImpactMatch</h1>
+                        <span>Volunteer Coordination OS</span>
+                    </div>
                 </div>
                 <nav className="sidebar-nav">
                     {navItems.map(section => (
                         <div key={section.section}>
-                            <div className="sidebar-section-label">{section.section}</div>
-                            {section.items.map(item => (
+                            <div 
+                                className="sidebar-section-label" 
+                                onClick={() => toggleSection(section.section)}
+                                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
+                                title="Click to toggle section"
+                            >
+                                <span>{section.section}</span>
+                                <span style={{ fontSize: '8px', opacity: 0.6, transform: collapsedSections[section.section] ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                                    ▼
+                                </span>
+                            </div>
+                            {!collapsedSections[section.section] && section.items.map(item => (
                                 <NavLink
                                     key={item.to}
                                     to={item.to}
@@ -67,9 +106,26 @@ export default function Layout() {
                 </div>
             </aside>
 
-            <main className="app-main">
+            <main className={`app-main ${isSidebarCollapsed ? 'desktop-expanded' : ''}`}>
                 <header className="app-topbar">
                     <div className="topbar-left">
+                        <button 
+                            className="mobile-menu-btn" 
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            aria-label="Open menu"
+                        >
+                            ☰
+                        </button>
+                        {isSidebarCollapsed && (
+                            <button 
+                                className="desktop-toggle-btn" 
+                                onClick={() => setIsSidebarCollapsed(false)}
+                                aria-label="Show Sidebar"
+                                title="Show Sidebar"
+                            >
+                                ☰
+                            </button>
+                        )}
                         <input
                             type="text"
                             className="topbar-search"
