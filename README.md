@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="LOGO.png" alt="FluxAxis Logo" width="400" />
+  <img src="LOGO.png" alt="FluxAxis Logo" width="700" />
 </p>
 
 <h1 align="center">ImpactMatch — Volunteer Coordination OS</h1>
