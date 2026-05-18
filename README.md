@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="FluxAxis Logo" width="500" />
+</p>
+
 <h1 align="center">ImpactMatch — Volunteer Coordination OS</h1>
 
 <p align="center">
