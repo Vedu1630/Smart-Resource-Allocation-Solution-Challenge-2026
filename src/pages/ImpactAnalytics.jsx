@@ -6,7 +6,7 @@ export default function ImpactAnalytics() {
     const { needs, volunteers, zones } = useApp();
     const [period, setPeriod] = useState('monthly');
 
-    const totalHours = Math.round(volunteers.reduce((s, v) => s + v.hoursLogged, 0));
+    const totalHours = Math.round(volunteers.reduce((s, v) => s + (v.hoursLogged || 0), 0));
     const resolvedPct = Math.round((needs.filter(n => n.status === 'done').length / Math.max(needs.length, 1)) * 100);
     const avgCoverage = Math.round(zones.reduce((s, z) => s + z.coverage, 0) / Math.max(zones.length, 1));
 
@@ -109,7 +109,7 @@ export default function ImpactAnalytics() {
 
                 <div className="raised-card fade-up" style={{ '--stagger': '0.3s' }}>
                     <div className="section-label mb-sm">Top Volunteers by Hours</div>
-                    {[...volunteers].sort((a, b) => b.hoursLogged - a.hoursLogged).slice(0, 8).map((v, i) => (
+                    {[...volunteers].sort((a, b) => (b.hoursLogged || 0) - (a.hoursLogged || 0)).slice(0, 8).map((v, i) => (
                         <div key={v.id} style={{
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             padding: '0.4rem 0', borderBottom: '0.5px solid var(--color-gray-100)',
@@ -126,7 +126,7 @@ export default function ImpactAnalytics() {
                                 {v.name.split(' ').map(n => n[0]).join('')}
                             </div>
                             <span style={{ flex: 1, fontSize: 12 }}>{v.name}</span>
-                            <span style={{ fontSize: 12, fontWeight: 500 }}>{Math.round(v.hoursLogged)}h</span>
+                            <span style={{ fontSize: 12, fontWeight: 500 }}>{Math.round(v.hoursLogged || 0)}h</span>
                         </div>
                     ))}
                 </div>

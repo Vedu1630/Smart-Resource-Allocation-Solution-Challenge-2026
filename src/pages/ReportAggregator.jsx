@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { extractNeedData } from '../services/claude';
+import { API_BASE_URL } from '../config';
 
 export default function ReportAggregator() {
     const { mergeNeeds, settings } = useApp();
@@ -27,13 +27,29 @@ export default function ReportAggregator() {
         setExtractedData(null);
         setConfirmed(false);
 
-        const result = await extractNeedData(reportText, settings.apiKey);
-        setExtractedData(result);
-
-        if (result.warnings?.length > 0) {
-            setConflicts(result.warnings);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/ai/extract`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: reportText })
+            });
+            const result = await response.json();
+            
+            if (response.ok) {
+                setExtractedData(result);
+                if (result.warnings?.length > 0) {
+                    setConflicts(result.warnings);
+                }
+            } else {
+                console.error(result.error);
+                setConflicts(['Failed to communicate with AI backend.']);
+            }
+        } catch (err) {
+            console.error('Extraction failed:', err);
+            setConflicts(['Server connection error.']);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleConfirm = () => {

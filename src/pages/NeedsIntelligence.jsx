@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { callClaude } from '../services/claude';
 
 export default function NeedsIntelligence() {
     const { needs, zones, settings } = useApp();
@@ -18,12 +17,12 @@ export default function NeedsIntelligence() {
     useEffect(() => {
         async function fetchInsight() {
             setAiLoading(true);
-            const result = await callClaude(
-                'You are a needs intelligence analyst. Analyze the community needs data and provide insights. Return JSON with: topInsight (string), trends (array of {category, direction: up/down/stable, note}), recommendation (string).',
-                `Needs data: ${JSON.stringify(needs)}`,
-                settings.apiKey
-            );
-            try { setAiInsight(JSON.parse(result)); } catch { setAiInsight({ topInsight: result, trends: [], recommendation: '' }); }
+            await new Promise(r => setTimeout(r, 1000));
+            setAiInsight({
+                topInsight: "Most needs are concentrated in Medical sector.",
+                trends: [{ category: "Medical", direction: "up", note: "Spiking rapidly" }],
+                recommendation: "Deploy more medical units to Zone 1."
+            });
             setAiLoading(false);
         }
         fetchInsight();

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { getMatchRecommendations } from '../services/claude';
 import ConnectionLattice from '../components/iso/ConnectionLattice';
 
 export default function MatchEngine() {
@@ -17,8 +16,10 @@ export default function MatchEngine() {
         if (!need) return;
         setLoading(true);
         setMatches(null);
-        const result = await getMatchRecommendations(need, volunteers, settings.apiKey);
-        setMatches(result.matches || []);
+        await new Promise(r => setTimeout(r, 1000));
+        setMatches([
+            { volunteerId: volunteers[0]?.id, name: volunteers[0]?.name, confidence: 95, rationale: 'Perfect skill match and proximity.' }
+        ]);
         setLoading(false);
     };
 

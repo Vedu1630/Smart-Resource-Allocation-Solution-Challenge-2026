@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
     {
@@ -31,9 +32,40 @@ const navItems = [
 
 export default function Layout() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { currentUser, logout } = useAuth();
+
+    const filteredNavItems = navItems.map(section => {
+        if (currentUser?.role === 'volunteer') {
+            if (section.section === 'Operations') {
+                return {
+                    section: 'Volunteer Ops',
+                    items: [
+                        { to: '/missions', label: 'My Missions', icon: '▦' }
+                    ]
+                };
+            }
+            if (section.section === 'System') {
+                return section;
+            }
+            return null;
+        }
+        return section;
+    }).filter(Boolean);
+    
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [collapsedSections, setCollapsedSections] = useState({});
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    };
 
     const toggleSection = (sectionName) => {
         setCollapsedSections(prev => ({ ...prev, [sectionName]: !prev[sectionName] }));
@@ -68,7 +100,7 @@ export default function Layout() {
                     </div>
                 </div>
                 <nav className="sidebar-nav">
-                    {navItems.map(section => (
+                    {filteredNavItems.map(section => (
                         <div key={section.section}>
                             <div 
                                 className="sidebar-section-label" 
@@ -134,7 +166,16 @@ export default function Layout() {
                     </div>
                     <div className="topbar-right">
                         <span className="topbar-badge">AI Active</span>
-                        <div className="topbar-avatar">AD</div>
+                        <div className="topbar-avatar" title={currentUser?.name}>
+                            {getInitials(currentUser?.name)}
+                        </div>
+                        <button 
+                            onClick={handleLogout}
+                            className="btn btn-secondary btn-sm"
+                            style={{ marginLeft: '8px' }}
+                        >
+                            Logout
+                        </button>
                     </div>
                 </header>
 

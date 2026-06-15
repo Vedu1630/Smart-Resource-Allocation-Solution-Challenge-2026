@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { getSkillGapAnalysis } from '../services/claude';
 
 export default function SkillGapAnalysis() {
     const { needs, volunteers, settings } = useApp();
@@ -10,8 +9,15 @@ export default function SkillGapAnalysis() {
     useEffect(() => {
         async function fetch() {
             setLoading(true);
-            const result = await getSkillGapAnalysis(needs, volunteers, settings.apiKey);
-            setAnalysis(result);
+            await new Promise(r => setTimeout(r, 1000));
+            setAnalysis({
+                overallScore: 65,
+                gaps: [
+                    { skill: 'Medical', demand: 5, supply: 2, severity: 'critical', recommendation: 'Urgent medical volunteers needed.' }
+                ],
+                criticalFlags: ['Severe shortage of doctors'],
+                trainingPrograms: [{ name: 'Basic First Aid', priority: 'critical', duration: '2 days' }]
+            });
             setLoading(false);
         }
         fetch();

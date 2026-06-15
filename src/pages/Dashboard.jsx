@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { getDailyBrief } from '../services/claude';
-import DashboardCubes from '../components/iso/DashboardCubes';
+import { getDailyBrief } from '../services/ai';
+import LiveGoogleMap from '../components/LiveGoogleMap';
 import { useNavigate } from 'react-router-dom';
 
 function AnimatedCounter({ target, duration = 800 }) {
@@ -140,132 +140,20 @@ export default function Dashboard() {
             <div className="grid-sidebar">
                 <div>
                     {/* Interactive Urgency Heatmap */}
-                    <div className="raised-card mb-md fade-up" style={{ '--stagger': '0.2s', position: 'relative' }} ref={heatmapRef}>
+                    <div className="raised-card mb-md fade-up" style={{ '--stagger': '0.2s', position: 'relative' }}>
                         <div className="flex justify-between items-center mb-sm">
                             <div className="section-label" style={{ marginBottom: 0 }}>
                                 <span className="live-dot"></span>
-                                Urgency Heatmap
+                                Live Operations Map
                             </div>
                             <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
-                                Click zones to drill down
+                                Real-time needs (Red/Amber) and Active volunteers (Green)
                             </span>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginTop: '0.5rem' }}>
-                            <DashboardCubes />
-                            <div style={{ flex: 1 }}>
-                                {/* Zone urgency cards — each is visually distinct */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                                    {heatCells.map((cell, i) => {
-                                        const isSelected = selectedHeatCell === cell.id;
-                                        return (
-                                            <div key={cell.id}
-                                                onMouseMove={(e) => handleHeatCellHover(e, cell)}
-                                                onMouseLeave={() => setTooltip({ ...tooltip, visible: false })}
-                                                onClick={() => handleHeatCellClick(cell)}
-                                                className="fade-up"
-                                                style={{
-                                                    '--stagger': `${i * 0.06}s`,
-                                                    padding: '8px 10px',
-                                                    background: isSelected ? 'var(--color-gray-100)' : 'var(--color-gray-50)',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    cursor: 'pointer',
-                                                    border: isSelected ? '1.5px solid var(--color-gray-900)' : '0.5px solid var(--color-border-tertiary)',
-                                                    transition: 'all 0.2s',
-                                                    position: 'relative',
-                                                }}
-                                            >
-                                                {/* Zone name + urgency badge */}
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                                                    <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-primary)' }}>
-                                                        {cell.name}
-                                                    </span>
-                                                    <span className={`badge ${cell.urgency === 'critical' ? 'badge-coral pulse-critical' : cell.urgency === 'high' ? 'badge-amber' : 'badge-teal'}`}
-                                                        style={{ fontSize: 8, padding: '1px 5px' }}>
-                                                        {cell.urgency}
-                                                    </span>
-                                                </div>
-
-                                                {/* Urgency score — weighted metric, unique per zone */}
-                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                                                    <span style={{
-                                                        fontSize: 22, fontWeight: 500, fontFamily: 'var(--font-mono)', lineHeight: 1,
-                                                        color: cell.urgencyScore >= 8 ? 'var(--color-coral-600)' : cell.urgencyScore >= 6 ? 'var(--color-amber-600)' : 'var(--color-teal-600)',
-                                                    }}>
-                                                        {cell.urgencyScore}
-                                                    </span>
-                                                    <span style={{ fontSize: 8, color: 'var(--color-text-tertiary)' }}>/10</span>
-                                                </div>
-
-                                                {/* Animated urgency bar */}
-                                                <div style={{ height: 4, background: 'var(--color-gray-200)', borderRadius: 2, marginBottom: 6, overflow: 'hidden' }}>
-                                                    <div className="bar-animated" style={{
-                                                        '--stagger': `${i * 0.1 + 0.2}s`,
-                                                        height: '100%', borderRadius: 2,
-                                                        width: `${cell.urgencyScore * 10}%`,
-                                                        background: cell.urgencyScore >= 8 ? 'var(--color-coral-400)' : cell.urgencyScore >= 6 ? 'var(--color-amber-400)' : 'var(--color-teal-400)',
-                                                    }} />
-                                                </div>
-
-                                                {/* Stats row */}
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--color-text-tertiary)' }}>
-                                                    <span>max <strong style={{ color: 'var(--color-text-secondary)' }}>{cell.maxSeverity}</strong></span>
-                                                    <span>avg <strong style={{ color: 'var(--color-text-secondary)' }}>{cell.avgSeverity}</strong></span>
-                                                    <span style={{ color: cell.openCount > 0 ? 'var(--color-coral-600)' : 'var(--color-teal-600)' }}>
-                                                        {cell.openCount} open
-                                                    </span>
-                                                </div>
-
-                                                {/* Coverage mini bar */}
-                                                <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                    <div style={{ flex: 1, height: 2, background: 'var(--color-gray-200)', borderRadius: 1 }}>
-                                                        <div style={{
-                                                            height: '100%', borderRadius: 1,
-                                                            width: `${cell.coverage}%`,
-                                                            background: cell.coverage >= 70 ? 'var(--color-teal-400)' : 'var(--color-amber-400)',
-                                                            transition: 'width 0.6s ease',
-                                                        }} />
-                                                    </div>
-                                                    <span style={{ fontSize: 8, color: 'var(--color-text-tertiary)' }}>{cell.coverage}%</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Drilldown panel when zone selected */}
-                                {selectedHeatCell && (() => {
-                                    const cell = heatCells.find(c => c.id === selectedHeatCell);
-                                    const zoneNeeds = needs.filter(n => n.zone === selectedHeatCell);
-                                    if (!cell) return null;
-                                    return (
-                                        <div className="fade-up" style={{
-                                            marginTop: 8, padding: '0.5rem', background: 'var(--color-gray-50)',
-                                            borderRadius: 'var(--radius-md)', fontSize: 11,
-                                        }}>
-                                            <div style={{ fontWeight: 500, marginBottom: 4 }}>{cell.name} — {zoneNeeds.length} needs</div>
-                                            {zoneNeeds.slice(0, 3).map(n => (
-                                                <div key={n.id} style={{
-                                                    display: 'flex', justifyContent: 'space-between', padding: '2px 0',
-                                                    color: 'var(--color-text-secondary)',
-                                                }}>
-                                                    <span className="truncate" style={{ flex: 1 }}>{n.title}</span>
-                                                    <span className={`badge ${n.severity >= 8 ? 'badge-coral' : 'badge-amber'}`}
-                                                        style={{ marginLeft: 8 }}>{n.severity}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
+                        <div style={{ marginTop: '0.5rem' }}>
+                            <LiveGoogleMap />
                         </div>
-
-                        {/* Floating tooltip */}
-                        {tooltip.visible && (
-                            <div className="viz-tooltip visible" style={{ left: tooltip.x, top: tooltip.y, transform: 'translateX(-50%)' }}>
-                                {tooltip.content}
-                            </div>
-                        )}
                     </div>
 
                     {/* Critical Needs with response timers */}

@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets & Local Configs
+.env
+.env.*
+*.env
+.env.local
+
+# Large Media Files
+*.mov
+*.mp4
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.gif

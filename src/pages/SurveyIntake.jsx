@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { autoCategorize } from '../services/claude';
+import { API_BASE_URL } from '../config';
 
 const STEPS = ['Location', 'Category', 'Severity', 'Description', 'Review'];
 const CATEGORIES = ['Medical', 'Food & Nutrition', 'Infrastructure', 'Water & Sanitation', 'Child Care', 'Counseling', 'Education', 'IT Support', 'Logistics', 'Translation', 'Other'];
@@ -52,12 +52,20 @@ export default function SurveyIntake() {
         let finalSeverity = form.severity;
 
         try {
-            const aiResult = await autoCategorize(form.description, settings.apiKey);
-            if (aiResult.confidence > 0.7) {
+            const response = await fetch(`${API_BASE_URL}/api/ai/categorize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: form.description })
+            });
+            const aiResult = await response.json();
+            
+            if (response.ok && aiResult.confidence > 0.7) {
                 finalCategory = aiResult.category;
                 finalSeverity = aiResult.severity;
             }
-        } catch (err) { /* keep manual values */ }
+        } catch (err) { 
+            console.error('AI categorization failed, using manual values', err); 
+        }
 
         const newNeed = {
             id: `n${Date.now()}`,

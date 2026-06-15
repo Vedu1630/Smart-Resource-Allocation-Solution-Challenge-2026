@@ -13,21 +13,21 @@ export default function VolunteerRegistry() {
     const [hoveredDay, setHoveredDay] = useState(null);
 
     const filtered = volunteers
-        .filter(v => !search || v.name.toLowerCase().includes(search.toLowerCase()) || v.email.toLowerCase().includes(search.toLowerCase()))
-        .filter(v => !skillFilter || v.skills.includes(skillFilter));
+        .filter(v => !search || v.name?.toLowerCase().includes(search.toLowerCase()) || v.email?.toLowerCase().includes(search.toLowerCase()))
+        .filter(v => !skillFilter || v.skills?.includes(skillFilter));
 
     const selected = selectedId ? volunteers.find(v => v.id === selectedId) : null;
 
     // Compute skill usage stats
     const skillUsage = ALL_SKILLS.map(skill => ({
         skill,
-        count: volunteers.filter(v => v.skills.includes(skill)).length,
+        count: volunteers.filter(v => v.skills?.includes(skill)).length,
     })).sort((a, b) => b.count - a.count);
 
     // Weekly global availability heatmap
     const availByDay = DAYS.map(day => ({
         day,
-        available: volunteers.filter(v => v.status === 'active' && v.availability[day]).length,
+        available: volunteers.filter(v => v.status === 'active' && v.availability?.[day]).length,
         total: volunteers.filter(v => v.status === 'active').length,
     }));
     const maxAvail = Math.max(...availByDay.map(d => d.available));
@@ -35,9 +35,10 @@ export default function VolunteerRegistry() {
     // Toggle volunteer availability on click
     const toggleAvailability = (day) => {
         if (!selected) return;
+        const currentAvail = selected.availability || {};
         updateVolunteer({
             id: selected.id,
-            availability: { ...selected.availability, [day]: !selected.availability[day] },
+            availability: { ...currentAvail, [day]: !currentAvail[day] },
         });
     };
 
@@ -188,16 +189,16 @@ export default function VolunteerRegistry() {
                                             </div>
                                         </td>
                                         <td>
-                                            {v.skills.slice(0, 2).map(s => (
+                                            {(v.skills || []).slice(0, 2).map(s => (
                                                 <span key={s} className="tag" style={{ cursor: 'pointer' }}
                                                     onClick={(e) => { e.stopPropagation(); setSkillFilter(skillFilter === s ? '' : s); }}>
                                                     {s}
                                                 </span>
                                             ))}
-                                            {v.skills.length > 2 && <span className="tag">+{v.skills.length - 2}</span>}
+                                            {(v.skills || []).length > 2 && <span className="tag">+{(v.skills || []).length - 2}</span>}
                                         </td>
                                         <td style={{ fontSize: 11 }}>{zones.find(z => z.id === v.zone)?.name || v.zone}</td>
-                                        <td style={{ fontWeight: 500 }}>{Math.round(v.hoursLogged)}</td>
+                                        <td style={{ fontWeight: 500 }}>{Math.round(v.hoursLogged || 0)}</td>
                                         <td>
                                             <span className={`badge ${v.status === 'active' ? 'badge-teal' : 'badge-gray'}`}>
                                                 {v.status}
@@ -228,7 +229,7 @@ export default function VolunteerRegistry() {
                             {/* Skills */}
                             <div className="section-label">Skills</div>
                             <div style={{ marginBottom: '0.75rem' }}>
-                                {selected.skills.map(s => (
+                                {selected.skills?.map(s => (
                                     <span key={s} className="tag" style={{ cursor: 'pointer' }}
                                         onClick={() => setSkillFilter(skillFilter === s ? '' : s)}>
                                         {s}
@@ -239,14 +240,14 @@ export default function VolunteerRegistry() {
                             {/* Languages */}
                             <div className="section-label">Languages</div>
                             <div style={{ marginBottom: '0.75rem' }}>
-                                {selected.languages.map(l => <span key={l} className="tag">{l}</span>)}
+                                {selected.languages?.map(l => <span key={l} className="tag">{l}</span>)}
                             </div>
 
                             {/* Interactive Availability Heatmap */}
                             <div className="section-label">Weekly Availability <span style={{ fontSize: 9, fontWeight: 400, color: 'var(--color-text-tertiary)' }}>(click to toggle)</span></div>
                             <div style={{ display: 'flex', gap: 4, marginBottom: '0.75rem' }}>
                                 {DAYS.map((d, i) => {
-                                    const isAvail = selected.availability[d];
+                                    const isAvail = selected.availability?.[d];
                                     const isHov = hoveredDay === `profile-${d}`;
                                     return (
                                         <div key={d} style={{ textAlign: 'center' }}
@@ -277,27 +278,27 @@ export default function VolunteerRegistry() {
                             <div style={{ fontSize: 12 }}>
                                 <div className="flex justify-between" style={{ padding: '0.3rem 0' }}>
                                     <span className="text-muted">Hours logged</span>
-                                    <span style={{ fontWeight: 500 }}>{Math.round(selected.hoursLogged)}</span>
+                                    <span style={{ fontWeight: 500 }}>{Math.round(selected.hoursLogged || 0)}</span>
                                 </div>
                                 <div className="flex justify-between" style={{ padding: '0.3rem 0' }}>
                                     <span className="text-muted">Matches</span>
-                                    <span style={{ fontWeight: 500 }}>{selected.matchHistory.length}</span>
+                                    <span style={{ fontWeight: 500 }}>{selected.matchHistory?.length || 0}</span>
                                 </div>
                                 <div className="flex justify-between" style={{ padding: '0.3rem 0' }}>
                                     <span className="text-muted">Zone</span>
-                                    <span style={{ fontWeight: 500 }}>{zones.find(z => z.id === selected.zone)?.name}</span>
+                                    <span style={{ fontWeight: 500 }}>{zones.find(z => z.id === selected.zone)?.name || selected.zone || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between" style={{ padding: '0.3rem 0' }}>
                                     <span className="text-muted">Joined</span>
-                                    <span style={{ fontWeight: 500 }}>{new Date(selected.joinDate).toLocaleDateString()}</span>
+                                    <span style={{ fontWeight: 500 }}>{selected.joinDate ? new Date(selected.joinDate).toLocaleDateString() : 'N/A'}</span>
                                 </div>
                             </div>
 
                             {/* Match History */}
-                            {selected.matchHistory.length > 0 && (
+                            {(selected.matchHistory?.length || 0) > 0 && (
                                 <div style={{ marginTop: '0.75rem' }}>
                                     <div className="section-label">Match History</div>
-                                    {selected.matchHistory.map(nId => {
+                                    {selected.matchHistory?.map(nId => {
                                         const need = needs.find(n => n.id === nId);
                                         return need ? (
                                             <div key={nId} style={{
