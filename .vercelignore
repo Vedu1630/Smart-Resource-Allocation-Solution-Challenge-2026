@@ -1,0 +1,25 @@
+# Exclude dependency directories
+node_modules
+server/node_modules
+
+# Exclude static build outputs
+dist
+out
+
+# Exclude local environment secrets
+.env
+.env.*
+*.env
+server/.env
+
+# Exclude large media assets
+*.mov
+*.mp4
+*.avi
+*.mkv
+Screen Recording*
+
+# Exclude databases and temp logs
+*.db-journal
+*.log
+logs
